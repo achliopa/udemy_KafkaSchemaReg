@@ -599,4 +599,397 @@ GenericRecord customerRead;
 
 ### Lecture 34. Kafka Avro Console Producer & Consumer
 
-* 
+* the Avro Console Producer allows us to quickly send data to Kafka manually by specifying the schema as a n argument
+* the binaries come with the Confluent Distribution of Kafka (accessible with docker or Confluent Binaries) 
+* we ll see how to use the Kafka Avro Console Producer and Consumer
+* all the commands for testing are in `3-schema-registry/1-kafka-avro-console-producer-consumer.sh`
+* if we are not already inside the confluent container tool we run `sudo docker run --net=host -it confluentinc/cp-schema-registry:3.3.1 bash`
+* we start an avro producer
+    * set the kafka broker
+    * topic
+    * as property we pass the schema registry location (REST proxy)
+    * we also pass the value.schema
+```
+kafka-avro-console-producer \
+    --broker-list 127.0.0.1:9092 --topic test-avro \
+    --property schema.registry.url=http://127.0.0.1:8081 \
+    --property value.schema='{"type":"record","name":"myrecord","fields":[{"name":"f1","type":"string"}]}'
+```
+* in localhost:3030 we see that the above command created a topic and added a schema to the cluster. also datatype is set to avro
+* we start now cping values in the console of the producer following the value.schema `{"f1": "value1"}` and see them published. we push illegal values to trigger an error `{"f2": "value4"}` and `{"f1": 1}` this breaks the producer
+* kafka-avro-console-cosumer consumes a topic and a schema from the registry to decode avro
+    * its a standard command by we pass as property the schema registry REST api endpoint
+```
+kafka-avro-console-consumer --topic test-avro \
+    --bootstrap-server 127.0.0.1:9092 \
+    --property schema.registry.url=http://127.0.0.1:8081 \
+    --from-beginning
+```
+* we see the records being consumed as streings after decoding
+* we will break the schema producing to the already present topic with another schema
+```
+kafka-avro-console-producer \
+    --broker-list localhost:9092 --topic test-avro \
+    --property schema.registry.url=http://127.0.0.1:8081 \
+    --property value.schema='{"type":"int"}'
+```
+* if we pass a compatible value say '1' it breaks ant the reason is schema incompatibility
+* these doesnt mean we cannot eveolve the schema. it has to be compatible with the evolution rules
+```
+kafka-avro-console-producer \
+    --broker-list localhost:9092 --topic test-avro \
+    --property schema.registry.url=http://127.0.0.1:8081 \
+    --property value.schema='{"type":"record","name":"myrecord","fields":[{"name":"f1","type":"string"},{"name": "f2", "type": "int", "default": 0}]}'
+```
+* we can now publish using the new schema `{"f1": "evolution", "f2": 1 }`
+* consumer consumes it,,,
+
+### Lecture 35. Writing a Kafka Avro Producer in Java
+
+* now that we have a feeling for the console producer and consumer using avro schema we can dive in Java
+* we will see how to write consumers and producers for our production app
+* we create anew project 'kafka-avro-v1'
+* we cp properies dependencies and plugins from course repo project to the project pom.xml file. what we added:
+    * enforced confluent avro and kafka version for the libs
+    * we add the confluent repository
+    * we add lib dependecies: apache avro, kafka client, kafka-avro serializer from confluent
+    * in plugins we enforce the java version 1.8, how to dicover the sources etc
+* in src we add package 'com.github.achliopa.kafka' and add a class KafkaAvroProducerV1
+* in main we will create a producer startin wit the valilla kafka producer config. our key will be string. the value is avro we also se the schema regisstry endpoint
+```
+properties.setProperty("value.serializer", KafkaAvroSerializer.class.getName());
+properties.setProperty("schema.registry.url", "http://127.0.0.1:8081");
+```
+
+* building the producer is like how we know but we need the Customer class to pass in builder. we will generate it from schema using specific record
+* our schema will be customer-v1.avsc in resources. run `mvn clean package`
+* we now have a class for
+* we build and run our producer. for every run the metadata returned show offset increase. we confirm creation in localhost:3030
+* we start a 
+```
+kafka-avro-console-consumer --topic customer-avro \
+    --bootstrap-server localhost:9092 \
+    --from-beginning \
+    --property schema.registry.url=http://127.0.0.1:8081
+```
+
+### Lecture 36. Writing a Kafka Avro Consumer in Java
+
+* now that we have written the Java AVro Producer we will write a Java Avro Consumer. we create an KafkaAvroConsumerV1 class
+* we pass in kafka and avro consumer props
+* we use KafkaAvroDeserializer
+* we build the consumer
+* we subscribe to topic and poll for messages
+
+### Lecture 38. Writing a V2 Kafka Producer
+
+* we create a new project v2
+* we copy everything from v1 project just change class names to v2
+* we mod the schema evolving it to v2 for full compatibility
+* we fire up producer v1 and consumer v2. it works
+* we fire up producer v2 and consumer v1. it works
+* both use same topic
+
+### Lecture 40. Summary on Compatibility Changes
+
+* Write a forward compatible change (common)
+    * update the producer to V2, this wont break the consumers
+    * take the time and update consumers to V2
+* Write a backward compatible change (less common)
+    * update all consumers to V2, we can read V1 produced data
+    * when all update update producer to V2
+
+### Lecture 41. Kafka Schema Registry Deep Dive
+
+* What actually happens in the Schema Registry
+* the avro bytes contain schema + content (payload)
+* with kafka avro serializer
+    * Avro Schema => register schema if not registered already (Get ID) =>Avro Schema (Schema Registry _ schema ID (4bytes))
+    * Avro Content => 2. prepend magic byte (version), 3. prepend schema ID => Avro Content (KAfka)
+* deserializer does the reverse
+* Schema registry externa,izes the schema 
+* redices message size a lot as schema is never sent
+* Now schema registry becomes a critical part of infrastructure (think redundancy)
+
+### Lecture 42. Managing Schemas Efficiently & Section Summary
+
+* create repo that holds the schema and geenrate the SpecificRecord classes.
+* Publish that schema using CICD once deemed valid and compatible with the current schema
+* in projects reference the published classes for our schema using maven e.g
+* write our normal producer/consumer
+* strive for FULL compatibility
+
+## Section 7: Confluent REST Proxy
+
+### Lecture 43. Kafka REST Proxy Introduction and Purpose
+
+* Kafka is great for java based consumers/producers. 
+* clients sometimes are lacking for other langs
+* additionaly sometimes AVRO support for some langs isnt great when JSON/HTTP reqs are excellent
+* Confluent developed the REST proxy to facilitate clientin other langs
+* Its opensource from Confluent
+* Rest Proxy  exchnages AVRO schema with Kafka Schema Registry offering JSON and HTTP API to Non-Java Producers/Consumers while it also taks to the KAfka Cluster for data
+* ITs integrated with schema registry so consumers .oriducers cab read/write to avro topics
+* there is a performace hit using the REST proxy instead of Kafka Native protocol and its estimated that the throuput decreases by 3-4x
+* its responsibility of prod app to batch events
+* Confluent REST Proxy is bundled on Docker Kafka Cluster
+* In this Section
+    * REST proxy calls and versions
+    * Topic ops
+    * Prod/cons binary
+    * Prod/cons JSON
+    * Prod/cons Avro
+    * Deploy and scale the REST proxy
+
+### Lecture 44. V1 vs V2 APIs
+
+* Apache Kafka has an old consumer and old producer API that were valid up to 0.8
+* After v0.8 Kafka released a new producer and consumemer API
+* REST proxy v2 has support for new API 
+* Making a reques to the REST proxy `application/vnd.kafka[.embedded_format].[api_version]+[serialization_format]`
+    * embedded_format: json,bin,avro
+    * api_verson: v2
+    * serilization_format: json
+
+### Lecture 45. Insomnia Setup (REST Client)
+
+* we ll install Insomnia REST client just to test it (if its better than POSTMAN)
+```
+# Add to sources
+echo "deb https://dl.bintray.com/getinsomnia/Insomnia /" \
+    | sudo tee -a /etc/apt/sources.list.d/insomnia.list
+
+# Add public key used to verify code signature
+wget --quiet -O - https://insomnia.rest/keys/debian-public.key.asc \
+    | sudo apt-key add -
+
+# Refresh repository sources and install Insomnia
+sudo apt-get update
+sudo apt-get install insomnia
+```
+
+* all the requests are in 'rest-proxy-insomnia.json' in 4-rest-proxy
+* in this folder we have the commands to create the topics in the kafka-cluster
+* in the tool: insomnia=>import/export => import=>from file 
+* we import the json and have all the commands available
+
+### lecture 46. Topic Operations
+
+* geting a list of topics (GET /topics)
+* getting a specific topic (GET /topics/topic_name)
+* we cannot create topics using the REST proxy we use the cli from host
+```
+kafka-topics.sh --create --zookeeper localhost:2181 --topic rest-binary --replication-factor 1 --partitions 1
+kafka-topics.sh --create --zookeeper localhost:2181 --topic rest-json --replication-factor 1 --partitions 1
+kafka-topics.sh --create --zookeeper localhost:2181 --topic rest-avro --replication-factor 1 --partitions 1
+```
+* we get topics with `GET http://localhost:8082/topics`
+* in header we set to accept as type 'application/vnd.kafka.v2+json'
+* to learn on a specific topic `http://{{ hostname  }}:8082/topics/__consumer_offsets`
+
+### Lecture 47. Producing in Binary with the Kafka REST Proxy
+
+* we have 3 choices with REST proxy to produce data
+    * binary (raw bytes encoded in base64)
+    * json (plain json)
+    * avro (json encoded)
+* before sending binary to REST Proxy we ened to base64 encode them
+* we can test the encoding [here](http://www.utilities-online.info/base64/)
+* in our example data is already encoded
+* to produce binary on the REST proxy `POST http://{{ hostname  }}:8082/topics/rest-binary`
+    * conent-type: application/vnd.kafka.binary.v2+json
+    * accept: application/vnd.kafka.v2+json, application/vnd.kafka+json, application/json
+    * json body:
+```
+{
+  "records": [
+    {
+      "key": "a2V5",
+      "value": "aGVsbG8gd29ybGQhISE="
+    },
+    {
+      "value": "XCJyYW5kb206JSQh",
+      "partition": 0
+    },
+    {
+      "value": "bm8gcGFydGl0aW9ucw=="
+    }
+  ]
+}
+```
+
+* reply with partition status
+```
+{
+  "offsets": [
+    {
+      "partition": 0,
+      "offset": 0,
+      "error_code": null,
+      "error": null
+    },
+    {
+      "partition": 0,
+      "offset": 1,
+      "error_code": null,
+      "error": null
+    },
+    {
+      "partition": 0,
+      "offset": 2,
+      "error_code": null,
+      "error": null
+    }
+  ],
+  "key_schema_id": null,
+  "value_schema_id": null
+}
+```
+
+### Lecture 48. Consuming in Binary with the Kafka REST Proxy
+
+* to consume with the REST Proxy, we first need to create a consumer in a specific consumer group
+* once we open a consumer, the REST Proxy return a URL to directly hit in order to keep on consuming from the same REST Proxy instance
+* if the REST Proxy shuts down, it will try to graceful close the consumers
+* if the REST Proxy shuts down, it will try to gracefully close the consumers
+* we can set
+    * `auto.offset.reset` latest or earliest
+    * `auto.commit.enable` true or false
+* Steps are (for any data format)
+    * create consumer
+    * subscribe to a topic (or topic list)
+    * get records
+    * process records (in our app)
+    * commit offsets (once in a whilw)
+* all these are different REST API actions
+
+### Lecture 49. Producing in JSON with the Kafka REST Proxy
+
+* JSON data does not need to be transofrmed before being sent to the REST Proxy, as our POST request takes JSON as an input
+* any kind of valid JSON can be sent there are no restrictions
+* each lang has support for JSON each easy to send semi structutred data
+* to produce json `POST http://{{ hostname  }}:8082/topics/rest-json`
+    * content-type: application/vnd.kafka.json.v2+json
+    * accept: application/vnd.kafka.v2+json, application/vnd.kafka+json, application/json
+    * json: 
+```
+{
+  "records": [
+    {
+      "key": "somekey",
+      "value": {"foo": "bar"}
+    },
+    {
+      "value": [ "foo", "bar" ],
+      "partition": 0
+    },
+    {
+      "value": 53.5
+    }
+  ]
+}
+```
+
+* in this example we send key and values
+
+### Lecture 50. Consuming in JSON with the Kafka REST Proxy
+
+* Steps are (for any data format)
+    * create consumer
+    * subscribe to a topic (or topic list)
+    * get records
+    * process records (in our app)
+    * commit offsets (once in a whilw)
+* all these are different REST API actions
+* JSON data are read as is
+* smae like before only header changes
+
+### Lecture 51. Producing in Avro with the Kafka REST Proxy
+
+* the REST proxy has primary support for Avro as its directly connected to the Schema Registry
+* We send the schema in JSON (stringified) and we send the Avro payload encoded in JSON
+* after the first produce call, we can get a schema id to reuse in the next requests without sending the schema again to make requests smaller
+* header will change as well in that case
+* request `POST http://{{ hostname  }}:8082/topics/rest-avro`
+    * content-type: application/vnd.kafka.avro.v2+json
+    * accept: application/vnd.kafka.v2+json, application/vnd.kafka+json, application/json
+    * json (other)
+```
+{
+  "value_schema": "{\"type\": \"record\", \"name\": \"User\", \"fields\": [{\"name\": \"name\", \"type\": \"string\"}, {\"name\" :\"age\",  \"type\": [\"null\",\"int\"]}]}",
+  "records": [
+    {
+      "value": {"name": "testUser", "age": null }
+    },
+    {
+      "value": {"name": "testUser", "age": {"int": 25} },
+      "partition": 0
+    }
+  ]
+}
+```
+* as we see we send schema and record. schema is stringifies
+* we get schema id and use it in our next POST
+```
+{
+  "value_schema_id": 7,
+  "records": [
+    {
+      "value": {"name": "newUser", "age": null }
+    },
+    {
+      "value": {"name": "newUser", "age": {"int": 30} },
+      "partition": 0
+    }
+  ]
+}
+```
+
+### Lecture 52. Consuming in Avro with the Kafka REST Proxy
+
+* steps are the same for consumer (diff REST API endpoints)
+* avro data will get JSON encoded (like with avro-tools)
+
+## Section 8: Annexes
+
+### Lecture 54. Full Avro End to End: Kafka Producer + Kafka Connect + Kafka Streams
+
+* [Medium Blogpost End-to-End RT Pipeline](https://medium.com/@stephane.maarek/how-to-use-apache-kafka-to-transform-a-batch-pipeline-into-a-real-time-one-831b48a6ad85)
+* [Github Repo](https://github.com/simplesteph/medium-blog-kafka-udemy)
+
+* Full End-to-End App
+* Its a full example leveraging Avro
+    * An Avro Producer for Reviews
+    * 2 kafka Stream apps using Avro
+    * One Kafka Connect Sink Using Avro
+* code is production ready end demos the full workflow
+* Udemy reviews are digested every 24h (spam dtection algo)
+* UDemy Batch Architecture
+    * Rest Endpoint `POST /reviews/{course-id}` -> New Review
+    * NewReview -> DB [All New Reviews] -> Pull All -> Fraud detection job {runs every 24 hours} -> append -> DB [Fraudulent Reviews], DB[All Valid Reviews]
+    * DB [Course Stats Alltime/Recent] -> pul -> REST Endpoint GET /course/{course-id}
+    * DB[all valid revies] -> pull all -> Statistics job -> update -> DB [Course Stats]
+* Envisioned Kafka Architecture
+    * REST Endpoint `POST /reviews/{course-id}` -> Kafka Producer (Udemy Reviews) -> KAFKA CLUSTER [Review Topic] -> Kafka Streams Fraud Detection <->Machine Learning Model -> KAFKA CLUSTER[Fraud Topic] , KAFKA CLUSTER [Valid Reviews Topic]
+    * KAFKA CLUSTER [Valid Reviews Topic] -> kafka Streams Stts App -> KAFKA CLUSTER [All time stats], KAFKA CLUSTER [Recent Stats] -> Kafka Connector JDBC Sin -> upser  -> PostgreDB -> Rest API pull stats 
+
+### Lecture 55. Kafka REST Proxy Installation and Scaling - Overview
+
+* Check [Kafka REST Proxy Config](https://docs.confluent.io/current/kafka-rest/config.html) for istructions
+* See Kafka REST proxy section -> installation
+* then check config options
+* `id` we need for adding more instances 
+* `bootstrap-server` to connect to kafka cluster 
+* `listeners` is for the REST Proxy port
+* `schema-registry.url` point to Confluent installation
+* latest REST proxy is 4.0
+* fire multiple instances behind a load balancer (NGINX) to scale
+## Section 9: Next Steps
+
+### Lecture 56. What's next?
+
+* [Avro Docs](http://avro.apache.org/docs/current/spec.html)
+* [Schema Registry Docs](https://docs.confluent.io/current/schema-registry/index.html)
+* [rEST Proxy Docs](https://docs.confluent.io/current/kafka-rest/index.html)
+
+* CLEAN UP `sudo docker system prune`

@@ -1,0 +1,5 @@
+com/example/Customer$1.class
+com/example/Customer$Builder.class
+com/example/Customer.class
+com/github/achliopa/avro/KafkaAvroConsumerV2.class
+com/github/achliopa/avro/KafkaAvroProducerV2.class

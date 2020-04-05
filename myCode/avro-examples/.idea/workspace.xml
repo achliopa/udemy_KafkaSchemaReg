@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="f475bdd8-30b2-45f6-82a8-319951c5ab43" name="Default Changelist" comment="" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Class" />
+      </list>
+    </option>
+  </component>
+  <component name="MavenImportPreferences">
+    <option name="importingSettings">
+      <MavenImportingSettings>
+        <option name="importAutomatically" value="true" />
+      </MavenImportingSettings>
+    </option>
+  </component>
+  <component name="ProjectId" id="1a5gBl2itFsf8YamhwLHi8qxuPB" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showExcludedFiles" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../../udemy/kafka_schema/courseRepo/kafka-avro-course-master/kafka-avro-v1" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/src/main/resources/avro" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Application.SpecificRecordExamples">
+    <configuration name="GenericRecordExample" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="com.github.achliopa.avro.generic.GenericRecordExample" />
+      <module name="avro-examples" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.github.achliopa.avro.generic.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="SpecificRecordExamples" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="com.github.achliopa.avro.specific.SpecificRecordExamples" />
+      <module name="avro-examples" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.github.achliopa.avro.specific.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Application.SpecificRecordExamples" />
+        <item itemvalue="Application.GenericRecordExample" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="f475bdd8-30b2-45f6-82a8-319951c5ab43" name="Default Changelist" comment="" />
+      <created>1586030735218</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1586030735218</updated>
+    </task>
+    <servers />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="136" y="242" width="566" height="385" key="#com.intellij.fileTypes.FileTypeChooser" timestamp="1586038150975">
+      <screen x="0" y="0" width="1600" height="873" />
+    </state>
+    <state x="136" y="242" width="566" height="385" key="#com.intellij.fileTypes.FileTypeChooser/0.0.1600.873@0.0.1600.873" timestamp="1586038150975" />
+    <state x="206" y="194" width="426" height="480" key="FileChooserDialogImpl" timestamp="1586093344513">
+      <screen x="0" y="0" width="1600" height="873" />
+    </state>
+    <state x="206" y="194" width="426" height="480" key="FileChooserDialogImpl/0.0.1600.873@0.0.1600.873" timestamp="1586093344513" />
+    <state width="799" height="220" key="GridCell.Tab.0.bottom" timestamp="1586093357386">
+      <screen x="0" y="0" width="1600" height="873" />
+    </state>
+    <state width="799" height="220" key="GridCell.Tab.0.bottom/0.0.1600.873@0.0.1600.873" timestamp="1586093357386" />
+    <state width="799" height="220" key="GridCell.Tab.0.center" timestamp="1586093357385">
+      <screen x="0" y="0" width="1600" height="873" />
+    </state>
+    <state width="799" height="220" key="GridCell.Tab.0.center/0.0.1600.873@0.0.1600.873" timestamp="1586093357385" />
+    <state width="799" height="220" key="GridCell.Tab.0.left" timestamp="1586093357385">
+      <screen x="0" y="0" width="1600" height="873" />
+    </state>
+    <state width="799" height="220" key="GridCell.Tab.0.left/0.0.1600.873@0.0.1600.873" timestamp="1586093357385" />
+    <state width="799" height="220" key="GridCell.Tab.0.right" timestamp="1586093357386">
+      <screen x="0" y="0" width="1600" height="873" />
+    </state>
+    <state width="799" height="220" key="GridCell.Tab.0.right/0.0.1600.873@0.0.1600.873" timestamp="1586093357386" />
+  </component>
+</project>

@@ -1,0 +1,11 @@
+com/example/Customer$1.class
+com/example/Customer.class
+com/github/achliopa/avro/generic/GenericRecordExample.class
+com/example/CustomerV1$Builder.class
+com/example/CustomerV1.class
+com/example/Customer$Builder.class
+com/example/CustomerV1$1.class
+com/example/CustomerV2$1.class
+com/example/CustomerV2$Builder.class
+com/example/CustomerV2.class
+com/github/achliopa/avro/specific/SpecificRecordExamples.class
